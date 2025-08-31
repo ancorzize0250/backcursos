@@ -45,7 +45,6 @@ class PreguntaService
     public function getFormattedPreguntas(array $data)
     {
         $validator = Validator::make($data, [
-            'id_modulo' => 'required|integer',
             'id_convocatoria' => 'required|integer',
             'id_usuario' => 'required|integer',
         ]);
@@ -55,7 +54,6 @@ class PreguntaService
         }
 
         $preguntas_flat = $this->preguntaRepository->getPreguntasByModuloAndUser(
-            $data['id_modulo'],
             $data['id_convocatoria'],
             $data['id_usuario']
         );

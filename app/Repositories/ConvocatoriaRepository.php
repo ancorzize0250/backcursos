@@ -37,9 +37,10 @@ class ConvocatoriaRepository
     {
         $queryBuilder = Convocatoria::query();
 
-        if (!empty($query)) {
-            $queryBuilder->where('nombre', 'LIKE', "%{$query}%");
-        }
+        $queryBuilder->whereRaw(
+            "public.unaccent(lower(nombre)) LIKE '%' || public.unaccent(lower(?)) || '%'",
+            [$query]
+        );
 
         return $queryBuilder->get();
     }

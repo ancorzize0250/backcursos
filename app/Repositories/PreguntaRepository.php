@@ -26,7 +26,7 @@ class PreguntaRepository
      * @param int $id_usuario
      * @return \Illuminate\Support\Collection
      */
-    public function getPreguntasByModuloAndUser(int $id_modulo, int $id_convocatoria, int $id_usuario)
+    public function getPreguntasByModuloAndUser(int $id_convocatoria, int $id_usuario)
     {
        return DB::table('convocatorias as c')
             ->join('modulos as m', 'c.id', '=', 'm.id_convocatoria')
@@ -52,7 +52,6 @@ class PreguntaRepository
                 'op.descripcion_opcion',
                 'op.correcta'
             )
-            ->where('m.id', $id_modulo)
             ->where('c.id', $id_convocatoria)
             ->where('cxu.estado', 1)
             ->where('u.id', $id_usuario)
