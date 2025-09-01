@@ -34,6 +34,7 @@ Route::post('/encabezado', [EncabezadoController::class, 'store']);
 
 Route::post('/preguntas', [PreguntaController::class, 'store']);
 Route::get('/preguntas', [PreguntaController::class, 'index']);
+Route::post('/preguntasmasivo', [PreguntaController::class, 'storeBulk']);
 
 Route::post('/opciones', [OpcionController::class, 'store']);
 

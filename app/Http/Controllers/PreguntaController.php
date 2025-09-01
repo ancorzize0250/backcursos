@@ -69,4 +69,18 @@ class PreguntaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Registra masivamente un conjunto de preguntas, encabezados y opciones.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function storeBulk(Request $request): JsonResponse
+    {
+        $data = $request->all();
+        $result = $this->preguntaService->createBulk($data);
+
+        return response()->json($result['message'], $result['status']);
+    }
 }

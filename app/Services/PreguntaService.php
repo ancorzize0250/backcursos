@@ -108,4 +108,38 @@ class PreguntaService
 
         return $formattedData;
     }
+
+    public function createBulk(array $data): array
+    {
+        // 1. Validar el formato de los datos recibidos.
+        $validator = Validator::make($data, [
+            '*.encabezados' => 'required|string',
+            '*.data' => 'required|array',
+            '*.data.*.preguntas' => 'required|string',
+            '*.data.*.opciones' => 'required|array|min:1',
+            '*.data.*.opciones.*.opcion' => 'required|string',
+            '*.data.*.opciones.*.descripcion_opcion' => 'required|string',
+            '*.data.*.opciones.*.correcta' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return [
+                'message' => ['success' => false, 'message' => $validator->errors()],
+                'status' => 400
+            ];
+        }
+
+        try {
+            $this->preguntaRepository->createBulk($data);
+            return [
+                'message' => ['success' => true, 'message' => 'Preguntas registradas masivamente con éxito.'],
+                'status' => 201
+            ];
+        } catch (\Exception $e) {
+            return [
+                'message' => ['success' => false, 'message' => 'Error al registrar las preguntas: ' . $e->getMessage()],
+                'status' => 500
+            ];
+        }
+    }
 }

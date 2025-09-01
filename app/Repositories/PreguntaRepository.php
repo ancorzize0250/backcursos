@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Pregunta;
+use App\Models\Encabezado;
+use App\Models\Opcion;
 use Illuminate\Support\Facades\DB;
 
 class PreguntaRepository
@@ -60,5 +62,49 @@ class PreguntaRepository
             ->limit(10)
             ->get();
     
+    }
+
+     /**
+     * Realiza la inserción masiva en la base de datos.
+     *
+     * @param array $payload
+     * @return void
+     */
+    public function createBulk(array $payload): void
+    {
+        DB::beginTransaction();
+
+        try {
+            foreach ($payload as $grupo) {
+                // Crear el encabezado.
+                $encabezado = Encabezado::create([
+                    'texto' => $grupo['encabezados'],
+                    'id_modulo' => $grupo['id_modulo'],
+                ]);
+
+                // Recorrer las preguntas dentro de este grupo de encabezado.
+                foreach ($grupo['data'] as $datosPregunta) {
+                   
+                    $pregunta = Pregunta::create([
+                        'pregunta' => $datosPregunta['preguntas'],
+                        'id_encabezado' => $encabezado->id,
+                    ]);
+
+                    // Recorrer las opciones de la pregunta y crearlas.
+                    foreach ($datosPregunta['opciones'] as $datosOpcion) {
+                        Opcion::create([
+                            'opcion' => $datosOpcion['opcion'],
+                            'descripcion_opcion' => $datosOpcion['descripcion_opcion'],
+                            'correcta' => $datosOpcion['correcta'],
+                            'id_pregunta' => $pregunta->id,
+                        ]);
+                    }
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 }
