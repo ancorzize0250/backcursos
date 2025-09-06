@@ -27,11 +27,6 @@ class Encabezado extends Model
         return $this->belongsTo(Modulo::class, 'id_modulo');
     }
 
-    /**
-     * Relación con la tabla de preguntas.
-     */
-    public function preguntas()
-    {
-        return $this->hasMany(Pregunta::class, 'id');
-    }
+
+    public function preguntas() { return $this->hasMany(Pregunta::class, 'id_encabezado'); }
 }

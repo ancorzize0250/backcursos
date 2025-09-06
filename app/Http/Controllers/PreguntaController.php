@@ -43,31 +43,25 @@ class PreguntaController extends Controller
         }
     }
 
-      /**
-     * Obtiene las preguntas para un módulo y usuario específicos.
+     /**
+     * Obtiene las preguntas y respuestas organizadas por encabezado.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function getQuestions(Request $request): JsonResponse
     {
-        try {
-            $preguntas = $this->preguntaService->getFormattedPreguntas($request->all());
-            return response()->json([
-                'message' => 'Preguntas obtenidas exitosamente.',
-                'data' => $preguntas
-            ], 200);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Error de validación.',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Ocurrió un error inesperado.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        $request->validate([
+            'id_convocatoria' => 'required|integer',
+            'id_usuario' => 'required|integer',
+        ]);
+
+        $convocatoriaId = $request->input('id_convocatoria');
+        $userId = $request->input('id_usuario');
+        
+        $result = $this->preguntaService->getPreguntasByConvocatoria($convocatoriaId);//, $userId);
+
+        return $result;
     }
 
     /**

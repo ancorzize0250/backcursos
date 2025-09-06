@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Repositories\ConvocatoriaRepository;
+use App\Repositories\ModuloRepository;
 use App\Repositories\PreguntaRepository;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -10,10 +12,14 @@ use Illuminate\Support\Collection;
 class PreguntaService
 {
     protected $preguntaRepository;
+    protected $convocatoriaRepository;
+    protected $moduloRepository;
 
-    public function __construct(PreguntaRepository $preguntaRepository)
+    public function __construct(PreguntaRepository $preguntaRepository, ConvocatoriaRepository $convocatoriaRepository, ModuloRepository $moduloRepository)
     {
         $this->preguntaRepository = $preguntaRepository;
+        $this->convocatoriaRepository = $convocatoriaRepository;
+        $this->moduloRepository = $moduloRepository;
     }
 
     /**
@@ -142,4 +148,75 @@ class PreguntaService
             ];
         }
     }
+
+    public function getPreguntasByConvocatoria(int $convocatoriaId, ?int $moduloId = null)
+    {
+        $convocatoria  = $this->convocatoriaRepository->getConvocatoriaById($convocatoriaId);
+        $moduloQuery  = $this->moduloRepository->getModuloByIdConvocatoria($convocatoriaId);
+
+        if ($moduloId) {
+            $moduloQuery->where('id', $moduloId);
+        }
+
+        $modulo = $moduloQuery
+            ->with([
+                // Encabezados ordenados por id
+                'encabezados' => function ($q) {
+                    $q->select('id','texto','id_modulo')->orderBy('id');
+                },
+                // Preguntas ordenadas por id
+                'encabezados.preguntas' => function ($q) {
+                    $q->select('id','pregunta','id_encabezado')->orderBy('id');
+                },
+                // Opciones ordenadas por letra (a, b, c)
+                'encabezados.preguntas.opciones' => function ($q) {
+                    $q->select('id','id_pregunta','opcion','descripcion_opcion','correcta')
+                    ->orderBy('opcion');
+                },
+            ])
+            ->select('id','nombre','id_convocatoria')
+            ->firstOrFail();
+
+        // 3) Armar el payload EXACTO
+        $payload = [
+            "message" => "Preguntas obtenidas exitosamente.",
+            "data" => [
+                "convocatoria" => [
+                    "id_convocatoria" => $convocatoria->id,
+                    "nombre"          => $convocatoria->nombre,
+                ],
+                "modulo" => [
+                    "id_modulo" => $modulo->id,
+                    "nombre"    => $modulo->nombre,
+                ],
+                "data" => $modulo->encabezados->map(function ($en) {
+                    return [
+                        "encabezado" => [
+                            "id_encabezado" => $en->id,
+                            // OJO: en BD el campo es 'texto'
+                            "encabezado"    => $en->texto,
+                        ],
+                        "preguntas" => $en->preguntas->map(function ($pr) {
+                            return [
+                                "pregunta" => [
+                                    "id_pregunta" => $pr->id,
+                                    "pregunta"    => $pr->pregunta,
+                                ],
+                                "opciones" => $pr->opciones->map(function ($op) {
+                                    return [
+                                        "opcion"             => $op->opcion,
+                                        "descripcion_opcion" => $op->descripcion_opcion,
+                                        "correcta"           => (bool) $op->correcta,
+                                    ];
+                                })->values(),
+                            ];
+                        })->values(),
+                    ];
+                })->values(),
+            ],
+        ];
+
+        return response()->json($payload);
+    }
+
 }

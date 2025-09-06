@@ -26,4 +26,9 @@ class ModuloRepository
     {
         return Modulo::create($data);
     }
+
+    public function getModuloByIdConvocatoria($convocatoriaId)
+    {   
+        return Modulo::where('id_convocatoria', $convocatoriaId);
+    }
 }

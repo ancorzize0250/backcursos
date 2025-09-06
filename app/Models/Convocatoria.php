@@ -24,4 +24,6 @@ class Convocatoria extends Model
     {
         return $this->hasMany(Modulo::class, 'id_convocatoria');
     }
+
+    
 }

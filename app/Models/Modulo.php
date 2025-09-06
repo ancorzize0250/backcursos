@@ -32,4 +32,12 @@ class Modulo extends Model
     {
         return $this->hasMany(Pregunta::class, 'id_modulo');
     }
+
+     public function encabezados()
+    {
+        return $this->hasMany(Encabezado::class, 'id_modulo');
+        // 'id_modulo' es la FK en encabezados que apunta a modulos.id
+    }
+
+    
 }

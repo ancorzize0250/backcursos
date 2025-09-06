@@ -5,7 +5,9 @@ namespace App\Repositories;
 use App\Models\Pregunta;
 use App\Models\Encabezado;
 use App\Models\Opcion;
+use App\Models\Convocatoria;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class PreguntaRepository
 {
@@ -106,5 +108,34 @@ class PreguntaRepository
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Obtiene los encabezados con sus preguntas y opciones para una convocatoria.
+     *
+     * @param int $convocatoriaId
+     * @return Collection
+     */
+    public function getOrganizedQuestionsData(int $convocatoriaId): Collection
+    {
+        return Encabezado::whereHas('modulo', function ($query) use ($convocatoriaId) {
+            $query->where('id_convocatoria', $convocatoriaId);
+        })
+        ->with(['preguntas' => function ($query) {
+            $query->with('opciones');
+        }])
+        ->get();
+    }
+
+    /**
+     * Obtiene la información de la convocatoria y su módulo.
+     *
+     * @param int $convocatoriaId
+     */
+    public function getConvocatoriaAndModulo(int $convocatoriaId)
+    {
+       return Convocatoria::with([
+            'modulos.encabezados.preguntas.opciones'
+        ])->findOrFail($convocatoriaId);
     }
 }

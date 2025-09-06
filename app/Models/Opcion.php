@@ -13,6 +13,7 @@ class Opcion extends Model
 
     // Desactivamos los timestamps
     public $timestamps = false;
+    protected $casts = ['correcta' => 'boolean'];
 
     protected $fillable = [
         'id_pregunta',

@@ -44,4 +44,10 @@ class ConvocatoriaRepository
 
         return $queryBuilder->get();
     }
+
+    public function getConvocatoriaById($convocatoriaId)
+    {   
+        return Convocatoria::select('id','nombre')->findOrFail($convocatoriaId);
+    }
+    
 }
