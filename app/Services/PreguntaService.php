@@ -161,10 +161,11 @@ class PreguntaService
             $registro = $this->convocatoriaRepository->validarActivacionConvocatoria($convocatoriaId, $userId);
         }
 
-        $limit = 18;
+        $limitFree = 18;
+        $limit = 9;
         if ($registro->estado == false) {
             $respuestasCount = $this->convocatoriaRepository->contarRespuestasPorConvocatoria($convocatoriaId, $userId);
-            $remaining = 18 - $respuestasCount;
+            $remaining = $limitFree - $respuestasCount;
             if ($remaining <= 0) {
                 return response()->json([
                     "message" => "Ya ha respondido 18 preguntas gratuitas. Debe solicitar la activación de la convocatoria.",
