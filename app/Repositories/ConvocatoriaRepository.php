@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Convocatoria;
+use App\Models\ConvocatoriaUsuario;
+use App\Models\RespuestaUsuario;
 
 class ConvocatoriaRepository
 {
@@ -49,5 +51,47 @@ class ConvocatoriaRepository
     {   
         return Convocatoria::select('id','nombre')->findOrFail($convocatoriaId);
     }
-    
+
+    public function getConvocatoriaByUser(int $convocatoriaId, int $userId)
+    {
+        return Convocatoria::where('id', $convocatoriaId)
+            ->whereHas('usuarios', function ($q) use ($userId) {
+                $q->where('usuarios.id', $userId);
+            })
+            ->firstOrFail();
+    }
+
+    public function validarActivacionConvocatoria(int $convocatoriaId, int $userId)
+    {
+        return ConvocatoriaUsuario::where('id_convocatoria', $convocatoriaId)
+            ->where('id_usuario', $userId)
+            ->first();
+    }
+
+    public function registrarUsuarioConvocatoria(int $convocatoriaId, int $userId)
+    {
+        ConvocatoriaUsuario::create([
+            'id_convocatoria' => $convocatoriaId,
+            'id_usuario'      => $userId,
+            'estado'          => false,
+        ]);
+
+        return ConvocatoriaUsuario::where('id_convocatoria', $convocatoriaId)
+        ->where('id_usuario', $userId)
+        ->first();
+    }
+
+    public function contarRespuestasPorConvocatoria(int $convocatoriaId, int $userId)
+    {
+        return RespuestaUsuario::where('id_usuario', $userId)
+        ->whereIn('id_pregunta', function($query) use ($convocatoriaId) {
+            $query->select('pre.id')
+                  ->from('preguntas as pre')
+                  ->join('encabezados as en', 'pre.id_encabezado', '=', 'en.id')
+                  ->join('modulos as m', 'en.id_modulo', '=', 'm.id')
+                  ->where('m.id_convocatoria', $convocatoriaId);
+        })
+        ->count();
+    }
+  
 }

@@ -71,7 +71,7 @@ class AuthController extends Controller
         try {
             $response = $this->authService->login([
                 'correo' => $request->correo,
-                'password' => $request->password, // Usamos 'password' internamente para el Hash
+                'password' => $request->password,
             ]);
             return response()->json($response, 200);
         } catch (Exception $e) {

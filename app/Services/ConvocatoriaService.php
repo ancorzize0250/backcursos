@@ -3,14 +3,17 @@
 namespace App\Services;
 
 use App\Repositories\ConvocatoriaRepository;
+use App\Repositories\RespuestaUsuarioRepository;
 
 class ConvocatoriaService
 {
     protected $convocatoriaRepository;
+    protected $respuestaUsuarioRepository;
 
-    public function __construct(ConvocatoriaRepository $convocatoriaRepository)
+    public function __construct(ConvocatoriaRepository $convocatoriaRepository, RespuestaUsuarioRepository $respuestaUsuarioRepository)
     {
         $this->convocatoriaRepository = $convocatoriaRepository;
+        $this->respuestaUsuarioRepository = $respuestaUsuarioRepository;
     }
 
     /**
@@ -40,8 +43,14 @@ class ConvocatoriaService
      * @param string $query
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function list(string $query = '')
+    public function list(string $query = '', $id_usuario)
     {
-        return $this->convocatoriaRepository->list($query);
+        $aList = $this->convocatoriaRepository->list($query);
+        foreach($aList as $list)
+        {
+            $ultima_pregunta = $this->respuestaUsuarioRepository->getUltimaPreguntaRespondida($id_usuario, $list->id);
+            $list->ultima_pregunta = $ultima_pregunta;
+        }
+        return $aList;
     }
 }

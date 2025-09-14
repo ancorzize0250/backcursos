@@ -51,15 +51,22 @@ class PreguntaController extends Controller
      */
     public function getQuestions(Request $request): JsonResponse
     {
-        $request->validate([
-            'id_convocatoria' => 'required|integer',
-            'id_usuario' => 'required|integer',
+       $request->validate([
+            'id_convocatoria'   => 'required',
+            'id_usuario'        => 'required',
+            'id_ultima_pregunta'=> 'required',
         ]);
 
-        $convocatoriaId = $request->input('id_convocatoria');
-        $userId = $request->input('id_usuario');
-        
-        $result = $this->preguntaService->getPreguntasByConvocatoria($convocatoriaId);//, $userId);
+        $convocatoriaId   = $request->query('id_convocatoria');
+        $userId           = $request->query('id_usuario');
+        $id_ultima_pregunta = $request->query('id_ultima_pregunta');
+
+        $result = $this->preguntaService->getPreguntasByConvocatoria(
+            $convocatoriaId, 
+            $userId, 
+            null, 
+            $id_ultima_pregunta
+        );
 
         return $result;
     }

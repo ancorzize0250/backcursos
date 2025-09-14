@@ -26,8 +26,9 @@ class ConvocatoriaController extends Controller
     {
         try {
             $convocatoria = request()->query('convocatoria'); 
+            $id_usuario = request()->query('id_usuario'); 
 
-            $convocatorias = $this->convocatoriaService->list($convocatoria);
+            $convocatorias = $this->convocatoriaService->list($convocatoria, $id_usuario);
             return response()->json($convocatorias, 200);
         } catch (Exception $e) {
             return response()->json(['message' => 'Error al obtener las convocatorias.'], 500);

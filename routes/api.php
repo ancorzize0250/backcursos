@@ -8,6 +8,7 @@ use App\Http\Controllers\EncabezadoController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\OpcionController;
 use App\Http\Controllers\PreguntaController;
+use App\Http\Controllers\RespuestaUsuarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,8 @@ Route::post('/encabezado', [EncabezadoController::class, 'store']);
 Route::post('/preguntas', [PreguntaController::class, 'store']);
 Route::get('/preguntas', [PreguntaController::class, 'getQuestions']);
 Route::post('/preguntasmasivo', [PreguntaController::class, 'storeBulk']);
+
+Route::post('/respuestas', [RespuestaUsuarioController::class, 'store']);
 
 Route::post('/opciones', [OpcionController::class, 'store']);
 

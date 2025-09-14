@@ -149,35 +149,109 @@ class PreguntaService
         }
     }
 
-    public function getPreguntasByConvocatoria(int $convocatoriaId, ?int $moduloId = null)
-    {
-        $convocatoria  = $this->convocatoriaRepository->getConvocatoriaById($convocatoriaId);
-        $moduloQuery  = $this->moduloRepository->getModuloByIdConvocatoria($convocatoriaId);
+    public function getPreguntasByConvocatoria(
+        int $convocatoriaId,
+        int $userId,
+        ?int $moduloId = null,
+        int $idUltimaPregunta = 0
+    ) {
+        $registro = $this->convocatoriaRepository->validarActivacionConvocatoria($convocatoriaId, $userId);
+        if (!$registro) {
+            $this->convocatoriaRepository->registrarUsuarioConvocatoria($convocatoriaId, $userId);
+            $registro = $this->convocatoriaRepository->validarActivacionConvocatoria($convocatoriaId, $userId);
+        }
 
+        $limit = 9;
+        if ($registro->estado == false) {
+            $respuestasCount = $this->convocatoriaRepository->contarRespuestasPorConvocatoria($convocatoriaId, $userId);
+            $remaining = 9 - $respuestasCount;
+            if ($remaining <= 0) {
+                return response()->json([
+                    "message" => "El usuario ya ha respondido 9 preguntas. Debe solicitar la activación de la convocatoria.",
+                    "data"    => null
+                ], 200);
+            }
+            $limit = min(9, $remaining);
+        }
+
+        // --- Obtener convocatoria y módulo ---
+        $convocatoria = $this->convocatoriaRepository->getConvocatoriaByUser($convocatoriaId, $userId);
+
+        $moduloQuery = $this->moduloRepository->getModuloByIdConvocatoria($convocatoriaId);
         if ($moduloId) {
             $moduloQuery->where('id', $moduloId);
         }
+        $modulo = $moduloQuery->select('id','nombre','id_convocatoria')->firstOrFail();
 
-        $modulo = $moduloQuery
-            ->with([
-                // Encabezados ordenados por id
-                'encabezados' => function ($q) {
-                    $q->select('id','texto','id_modulo')->orderBy('id');
-                },
-                // Preguntas ordenadas por id
-                'encabezados.preguntas' => function ($q) {
-                    $q->select('id','pregunta','id_encabezado')->orderBy('id');
-                },
-                // Opciones ordenadas por letra (a, b, c)
-                'encabezados.preguntas.opciones' => function ($q) {
-                    $q->select('id','id_pregunta','opcion','descripcion_opcion','correcta')
-                    ->orderBy('opcion');
-                },
-            ])
-            ->select('id','nombre','id_convocatoria')
-            ->firstOrFail();
+        // --- Traer encabezados del módulo (ordenados) ---
+        $encabezados = \App\Models\Encabezado::where('id_modulo', $modulo->id)
+            ->select('id','texto','id_modulo')
+            ->orderBy('id')
+            ->get();
 
-        // 3) Armar el payload EXACTO
+        // --- Traer las próximas preguntas globalmente y sus opciones ---
+        $encabezadoIds = $encabezados->pluck('id')->toArray();
+
+        $preguntas = \App\Models\Pregunta::with(['opciones' => function($q) {
+                $q->select('id','id_pregunta','opcion','descripcion_opcion','correcta')->orderBy('opcion');
+            }])
+            ->whereIn('id_encabezado', $encabezadoIds)
+            ->when($idUltimaPregunta > 0, function($q) use ($idUltimaPregunta) {
+                $q->where('id', '>', $idUltimaPregunta);
+            })
+            ->orderBy('id')
+            ->limit($limit)
+            ->get();
+
+        // Si no hay preguntas (ya no quedan), devolvemos mensaje claro
+        if ($preguntas->isEmpty()) {
+            return response()->json([
+                "message" => "No hay más preguntas disponibles.",
+                "data"    => null
+            ], 200);
+        }
+
+        // --- Agrupar por encabezado ---
+        $preguntasPorEncabezado = $preguntas->groupBy('id_encabezado');
+
+        // --- FILTRAR encabezados para quedar sólo con los que tienen preguntas ---
+        $encabezadosConPreguntas = $encabezados->filter(function($en) use ($preguntasPorEncabezado) {
+            return $preguntasPorEncabezado->has($en->id) && $preguntasPorEncabezado->get($en->id)->isNotEmpty();
+        });
+
+        // --- Mapear encabezados con sus preguntas/opciones (solo los con preguntas) ---
+        $dataEncabezados = $encabezadosConPreguntas->map(function ($en) use ($preguntasPorEncabezado) {
+            $pregs = $preguntasPorEncabezado->get($en->id);
+
+            $pregsFormateadas = $pregs->map(function ($pr) {
+                return [
+                    "pregunta" => [
+                        "id_pregunta" => $pr->id,
+                        "pregunta"    => $pr->pregunta,
+                    ],
+                    "opciones" => $pr->opciones->map(function ($op) {
+                        return [
+                            "opcion"             => $op->opcion,
+                            "descripcion_opcion" => $op->descripcion_opcion,
+                            "correcta"           => (bool) $op->correcta,
+                        ];
+                    })->values(),
+                ];
+            })->values();
+
+            return [
+                "encabezado" => [
+                    "id_encabezado" => $en->id,
+                    "encabezado"    => $en->texto,
+                ],
+                "preguntas" => $pregsFormateadas,
+            ];
+        })->values();
+
+        // --- (opcional) id de la última pregunta enviada para el siguiente llamado ---
+        $ultimaPreguntaEnviada = $preguntas->last()->id ?? $idUltimaPregunta;
+
+        // --- payload final ---
         $payload = [
             "message" => "Preguntas obtenidas exitosamente.",
             "data" => [
@@ -189,30 +263,9 @@ class PreguntaService
                     "id_modulo" => $modulo->id,
                     "nombre"    => $modulo->nombre,
                 ],
-                "data" => $modulo->encabezados->map(function ($en) {
-                    return [
-                        "encabezado" => [
-                            "id_encabezado" => $en->id,
-                            // OJO: en BD el campo es 'texto'
-                            "encabezado"    => $en->texto,
-                        ],
-                        "preguntas" => $en->preguntas->map(function ($pr) {
-                            return [
-                                "pregunta" => [
-                                    "id_pregunta" => $pr->id,
-                                    "pregunta"    => $pr->pregunta,
-                                ],
-                                "opciones" => $pr->opciones->map(function ($op) {
-                                    return [
-                                        "opcion"             => $op->opcion,
-                                        "descripcion_opcion" => $op->descripcion_opcion,
-                                        "correcta"           => (bool) $op->correcta,
-                                    ];
-                                })->values(),
-                            ];
-                        })->values(),
-                    ];
-                })->values(),
+                "data" => $dataEncabezados,
+                // Si quieres, devolvemos la última pregunta enviada (útil para paginar)
+                "ultima_pregunta_enviada" => $ultimaPreguntaEnviada,
             ],
         ];
 
