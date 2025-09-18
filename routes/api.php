@@ -9,6 +9,7 @@ use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\OpcionController;
 use App\Http\Controllers\PreguntaController;
 use App\Http\Controllers\RespuestaUsuarioController;
+use App\Http\Controllers\CorreoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,5 +41,7 @@ Route::post('/preguntasmasivo', [PreguntaController::class, 'storeBulk']);
 Route::post('/respuestas', [RespuestaUsuarioController::class, 'store']);
 
 Route::post('/opciones', [OpcionController::class, 'store']);
+
+Route::post('/correo', [CorreoController::class, 'enviar']);
 
 
