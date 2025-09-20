@@ -48,7 +48,8 @@ class ConvocatoriaController extends Controller
             'nombre' => 'required|string|max:255',
             'logotipo' => 'required|string|max:255',
             'descripcion' => 'required|string',
-            'enlace' => 'required|string|max:255'
+            'enlace' => 'required|string|max:255',
+            'etiqueta' => 'required|string|max:255'
         ]);
 
         if ($validator->fails()) {

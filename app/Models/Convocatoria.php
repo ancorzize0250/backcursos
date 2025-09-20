@@ -17,7 +17,8 @@ class Convocatoria extends Model
         'nombre',
         'logotipo',
         'descripcion',
-        'enlace'
+        'enlace',
+        'etiqueta'
     ];
 
     /**
