@@ -39,9 +39,12 @@ Route::get('/preguntas', [PreguntaController::class, 'getQuestions']);
 Route::post('/preguntasmasivo', [PreguntaController::class, 'storeBulk']);
 
 Route::post('/respuestas', [RespuestaUsuarioController::class, 'store']);
+Route::get('/respuestas', [RespuestaUsuarioController::class, 'history']);
 
 Route::post('/opciones', [OpcionController::class, 'store']);
 
 Route::post('/correo', [CorreoController::class, 'enviar']);
 
+Route::get('/convocatoriaxusuario', [ConvocatoriaController::class, 'getConvocatoriasByUsuario']);
+Route::get('/historico', [ConvocatoriaController::class, 'getRespuestas']);
 

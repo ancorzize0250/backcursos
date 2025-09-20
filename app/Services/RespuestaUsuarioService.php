@@ -30,7 +30,7 @@ class RespuestaUsuarioService
                 $formattedData = [
                     'id_pregunta' => $data['id_pregunta'],
                     'id_usuario' => $data['id_usuario'],
-                    'respuesta_usuario' => $data['opcion'] . ': ' . $data['descripcion_opcion'],
+                    'respuesta_usuario' => $data['opcion'],
                     'correcta' => $data['correcta'],
                 ];
 

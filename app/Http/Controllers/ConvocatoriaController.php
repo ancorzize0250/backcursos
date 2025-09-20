@@ -63,4 +63,32 @@ class ConvocatoriaController extends Controller
             'convocatoria' => $convocatoria,
         ], 201);
     }
+
+    public function getConvocatoriasByUsuario(Request $request) {
+        $request->validate([
+            'id_usuario' => 'required|integer',
+        ]);
+        try {
+            $convocatorias = $this->convocatoriaService->getConvocatoriasByUsuario($request->input('id_usuario'));
+            return response()->json($convocatorias);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener convocatorias', 'message' => $e->getMessage()], 500);
+        }
+    }
+    
+    public function getRespuestas(Request $request) {
+        $request->validate([
+            'id_usuario' => 'required|integer',
+            'id_convocatoria' => 'required|integer',
+        ]);
+        try {
+            $data = $this->convocatoriaService->getRespuestasByConvocatoria(
+                $request->input('id_usuario'),
+                $request->input('id_convocatoria')
+            );
+            return response()->json(['message' => 'Preguntas obtenidas exitosamente.', 'data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener respuestas', 'message' => $e->getMessage()], 500);
+        }
+    }
 }
