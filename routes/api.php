@@ -28,6 +28,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/convocatorias', [ConvocatoriaController::class, 'index']);
 Route::post('/convocatorias', [ConvocatoriaController::class, 'store']);
+Route::get('/convocatoriasall', [ConvocatoriaController::class, 'list']);
 
 Route::get('/modulos', [ModuloController::class, 'index']);
 Route::post('/modulos', [ModuloController::class, 'store']);

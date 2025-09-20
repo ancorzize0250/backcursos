@@ -57,8 +57,20 @@ class ConvocatoriaService
     public function getConvocatoriasByUsuario(int $userId) {
         return $this->convocatoriaRepository->getConvocatoriasByUsuario($userId);
     }
-
+    
     public function getRespuestasByConvocatoria(int $userId, int $convocatoriaId) {
         return $this->convocatoriaRepository->getRespuestasByConvocatoria($userId, $convocatoriaId);
+    }
+
+    /**
+     * Lista todas las convocatorias
+     *
+     * @param string $query
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function listAll()
+    {
+        $aList = $this->convocatoriaRepository->all();
+        return $aList;
     }
 }

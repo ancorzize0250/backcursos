@@ -46,6 +46,9 @@ class ConvocatoriaController extends Controller
         $validator = Validator::make($request->all(), [
             'codigo' => 'required|string|max:255|unique:convocatorias,codigo',
             'nombre' => 'required|string|max:255',
+            'logotipo' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'enlace' => 'required|string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -89,6 +92,22 @@ class ConvocatoriaController extends Controller
             return response()->json(['message' => 'Preguntas obtenidas exitosamente.', 'data' => $data]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al obtener respuestas', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Lista todas las convocatorias, con opción de búsqueda.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function list(Request $request)
+    {
+        try {
+            $convocatorias = $this->convocatoriaService->listAll();
+            return response()->json($convocatorias, 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Error al obtener las convocatorias.'], 500);
         }
     }
 }

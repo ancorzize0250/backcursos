@@ -15,6 +15,9 @@ class Convocatoria extends Model
     protected $fillable = [
         'codigo',
         'nombre',
+        'logotipo',
+        'descripcion',
+        'enlace'
     ];
 
     /**
