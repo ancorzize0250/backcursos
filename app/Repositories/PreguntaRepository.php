@@ -138,4 +138,5 @@ class PreguntaRepository
             'modulos.encabezados.preguntas.opciones'
         ])->findOrFail($convocatoriaId);
     }
+    
 }

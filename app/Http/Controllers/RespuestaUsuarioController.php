@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\RespuestaUsuarioService;
 use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class RespuestaUsuarioController extends Controller
 {
@@ -54,6 +55,26 @@ class RespuestaUsuarioController extends Controller
                 'message' => 'Error al guardar la respuesta del usuario',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function eliminarHistorico(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_usuario' => 'required|integer',
+                'id_convocatoria' => 'required|integer',
+            ]);
+
+            $id_usuario = $request->input('id_usuario');
+            $id_convocatoria = $request->input('id_convocatoria');
+            
+            $result = $this->respuestaUsuarioService->eliminarHistorial($id_usuario, $id_convocatoria);
+            
+            return response()->json($result, $result['status'] === 'success' ? 200 : 404);
+
+        } catch (Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Error en la solicitud: ' . $e->getMessage()], 500);
         }
     }
 }

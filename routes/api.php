@@ -41,6 +41,7 @@ Route::post('/preguntasmasivo', [PreguntaController::class, 'storeBulk']);
 
 Route::post('/respuestas', [RespuestaUsuarioController::class, 'store']);
 Route::get('/respuestas', [RespuestaUsuarioController::class, 'history']);
+Route::post('/eliminarhistorico', [RespuestaUsuarioController::class, 'eliminarHistorico']);
 
 Route::post('/opciones', [OpcionController::class, 'store']);
 

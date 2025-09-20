@@ -41,4 +41,15 @@ class RespuestaUsuarioService
             return $respuestas;
         });
     }
+
+    public function eliminarHistorial($id_usuario, $id_convocatoria)
+    {
+        $deletedCount = $this->respuestaUsuarioRepository->deleteHistorial($id_usuario, $id_convocatoria);
+
+        if ($deletedCount > 0) {
+            return ['status' => 'success', 'message' => 'Se eliminó el histórico correctamente'];
+        } else {
+            return ['status' => 'error', 'message' => 'No se encontró historial para la convocatoria y usuario especificados'];
+        }
+    }
 }
