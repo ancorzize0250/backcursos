@@ -40,10 +40,16 @@ class ConvocatoriaRepository
     {
         $queryBuilder = Convocatoria::query();
 
-        $queryBuilder->whereRaw(
-            "public.unaccent(lower(nombre)) LIKE '%' || public.unaccent(lower(?)) || '%'",
-            [$query]
-        );
+        $queryBuilder->where(function ($q) use ($query) {
+            $q->whereRaw(
+                "public.unaccent(lower(nombre)) LIKE '%' || public.unaccent(lower(?)) || '%'",
+                [$query]
+            )
+            ->orWhereRaw(
+                "public.unaccent(lower(etiqueta)) LIKE '%' || public.unaccent(lower(?)) || '%'",
+                [$query]
+            );
+        });
 
         return $queryBuilder->get();
     }
