@@ -161,7 +161,7 @@ class PreguntaService
             $registro = $this->convocatoriaRepository->validarActivacionConvocatoria($convocatoriaId, $userId);
         }
 
-        $limitFree = 170;
+        $limitFree = 45;
         $limit = 9;
         if ($registro->estado == false) {
             $respuestasCount = $this->convocatoriaRepository->contarRespuestasPorConvocatoria($convocatoriaId, $userId);
